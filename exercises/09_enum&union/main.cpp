@@ -23,22 +23,36 @@ enum class Color : int {
     Blue,
 };
 
+// ColorEnum convert_by_pun(Color c) {
+//     // READ: <https://zh.cppreference.com/w/cpp/language/union>
+//     // `union` 表示在同一内存位置存储的不同类型的值。
+//     // 其常见用法是实现类型双关转换，即将一种类型的值转换为另一种无关类型的值。
+//     // 但这种写法实际上仅在 C 语言良定义，在 C++ 中是未定义行为。
+//     // 这是比较少见的 C++ 不与 C 保持兼容的特性。
+//     // READ: 类型双关 <https://tttapa.github.io/Pages/Programming/Cpp/Practices/type-punning.html>
+//     union TypePun {
+//         ColorEnum e;
+//         Color c;
+//     };
+
+//     TypePun pun;
+//     // TODO: 补全类型双关转换
+
+//     return pun.e;
+// }
+
 ColorEnum convert_by_pun(Color c) {
-    // READ: <https://zh.cppreference.com/w/cpp/language/union>
-    // `union` 表示在同一内存位置存储的不同类型的值。
-    // 其常见用法是实现类型双关转换，即将一种类型的值转换为另一种无关类型的值。
-    // 但这种写法实际上仅在 C 语言良定义，在 C++ 中是未定义行为。
-    // 这是比较少见的 C++ 不与 C 保持兼容的特性。
-    // READ: 类型双关 <https://tttapa.github.io/Pages/Programming/Cpp/Practices/type-punning.html>
-    union TypePun {
-        ColorEnum e;
-        Color c;
-    };
+    // 使用静态断言确保两个枚举类型的底层类型兼容
+    // static_assert(sizeof(Color) == sizeof(ColorEnum), "Enum sizes must match for safe conversion");
 
-    TypePun pun;
-    // TODO: 补全类型双关转换
-
-    return pun.e;
+    // 安全地转换有作用域枚举到无作用域枚举
+    switch (c) {
+        case Color::Red:   return COLOR_RED;
+        case Color::Green: return COLOR_GREEN;
+        case Color::Yellow:return COLOR_YELLOW;
+        case Color::Blue:  return COLOR_BLUE;
+        default:           throw std::invalid_argument("Unknown color");
+    }
 }
 
 int main(int argc, char **argv) {

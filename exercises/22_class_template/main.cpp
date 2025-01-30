@@ -1,4 +1,5 @@
 ﻿#include "../exercise.h"
+#include <cstring>
 
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
@@ -9,7 +10,12 @@ struct Tensor4D {
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
+        // : 填入正确的 shape 并计算 size
+        for (size_t i = 0; i < 4; i++)
+        {
+            shape[i] = shape_[i];
+        }
+        size = shape[0] * shape[1] * shape[2] * shape[3];
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -27,8 +33,54 @@ struct Tensor4D {
     // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
-        // TODO: 实现单向广播的加法
+        // : 实现单向广播的加法
+        // 1. 检查形状是否兼容
+        for (size_t i = 0; i < 4; i++)
+        {
+            if (shape[i] != others.shape[i] && others.shape[i] != 1)
+            {
+                throw std::invalid_argument("Shape mismatch");
+            }
+        }
+        int m = others.shape[0];
+        int n = others.shape[1];
+        int p = others.shape[2];
+        int q = others.shape[3];
+        for (size_t i = 0; i < shape[0]; i++)
+        {
+            for (size_t j = 0; j < shape[1]; j++)
+            {
+                for (size_t k = 0; k < shape[2]; k++)
+                {
+                    for (size_t l = 0; l < shape[3]; l++)
+                    {
+                        int other_value = others.data[(((i % m) * n + j % n) * p + k % p) * q + l % q ];
+                        data[((i * shape[1] + j) * shape[2] + k) * shape[3] + l] += other_value;
+                    }
+                }
+            }
+        }
+        // 2. 
         return *this;
+    }
+    void print() {
+        for (size_t i = 0; i < shape[0]; i++) {
+            std::cout << "[ ";
+            for (size_t j = 0; j < shape[1]; j++) {
+                std::cout << "[ ";
+                for (size_t k = 0; k < shape[2]; k++) {
+                    std::cout << "[ ";
+                    for (size_t l = 0; l < shape[3]; l++) {
+                        // std::cout << "idx: " << ((i * shape[1] + j) * shape[2] + k) * shape[3] + l << std::endl;
+                        std::cout << data[((i * shape[1] + j) * shape[2] + k) * shape[3] + l] << " ";
+                    }
+                }
+                std::cout << "] ";
+            }
+            std::cout << "] ";
+        }
+        std::cout << "] ";
+        std::cout << std::endl;
     }
 };
 
@@ -47,8 +99,11 @@ int main(int argc, char **argv) {
             21, 22, 23, 24};
         // clang-format on
         auto t0 = Tensor4D(shape, data);
+        t0.print();
         auto t1 = Tensor4D(shape, data);
+        t1.print();
         t0 += t1;
+        t0.print();
         for (auto i = 0u; i < sizeof(data) / sizeof(*data); ++i) {
             ASSERT(t0.data[i] == data[i] * 2, "Tensor doubled by plus its self.");
         }
